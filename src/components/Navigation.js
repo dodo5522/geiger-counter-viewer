@@ -42,9 +42,9 @@ class NavTabs extends React.Component {
 					<AppBar position="fixed" color="primary" className={classes.appBar}>
 						<Tabs fullWidth value={value} onChange={this.handleChange}>
 							<LinkTab label="分毎" href="minute" />
-							<LinkTab label="週平均" href="week" />
-							<LinkTab label="月平均" href="month" />
-							<LinkTab label="年平均" href="year" />
+							<LinkTab label="週平均" href="week" disabled />
+							<LinkTab label="月平均" href="month" disabled />
+							<LinkTab label="年平均" href="year" disabled />
 						</Tabs>
 					</AppBar>
 				</div>
