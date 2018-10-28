@@ -140,9 +140,7 @@ my-app/
     index.html
     favicon.ico
   src/
-    App.css
-    App.js
-    App.test.js
+    index.test.js
     index.css
     index.js
     logo.svg
@@ -442,34 +440,6 @@ Here is an example:
 const moduleA = 'Hello';
 
 export { moduleA };
-```
-
-### `App.js`
-
-```js
-import React, { Component } from 'react';
-
-class App extends Component {
-  handleClick = () => {
-    import('./moduleA')
-      .then(({ moduleA }) => {
-        // Use moduleA
-      })
-      .catch(err => {
-        // Handle failure
-      });
-  };
-
-  render() {
-    return (
-      <div>
-        <button onClick={this.handleClick}>Load</button>
-      </div>
-    );
-  }
-}
-
-export default App;
 ```
 
 This will make `moduleA.js` and all its unique dependencies as a separate chunk that only loads after the user clicks the 'Load' button.
