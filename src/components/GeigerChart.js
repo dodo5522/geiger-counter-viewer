@@ -124,7 +124,7 @@ class GeigerChart extends Component {
 	render() {
 		return (
 			<div>
-				<canvas ref="canvas" width="500" height={200}/>
+				<canvas ref="canvas" width='100%' height='100%'/>
 			</div>
 		);
 	}
