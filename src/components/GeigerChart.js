@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { KeenAnalysis } from 'keen-analysis';
 import { Chart } from 'chart.js';
 import 'chartjs-plugin-streaming';
+import { keys } from '../config';
 
 const durationWithMinute = 60;
 const color = Chart.helpers.color;
@@ -15,10 +16,7 @@ const chartColors = {
 	grey: 'rgb(201, 203, 207)'
 };
 
-const keen = new KeenAnalysis({
-	projectId: '',
-	readKey: ''
-});
+const keen = new KeenAnalysis(keys.keen);
 
 const chartConfig = {
 	type: 'line',
