@@ -31,11 +31,6 @@ const chartConfig = {
 		}]
 	},
 	options: {
-		title: {
-			display: true,
-			position: 'top',
-			fontSize: 18
-		},
 		scales: {
 			xAxes: [{
 				type: 'realtime',				// x axis will auto-scroll from right to left
