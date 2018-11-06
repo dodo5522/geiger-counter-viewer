@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
 import { KeenAnalysis } from 'keen-analysis';
 import { Chart } from 'chart.js';
-import 'chartjs-plugin-streaming';
 import { keys } from '../config';
+import moment from 'moment';
 
-const durationWithMinute = 60;
 const color = Chart.helpers.color;
 const chartColors = {
 	red: 'rgb(255, 99, 132)',
@@ -15,6 +14,9 @@ const chartColors = {
 	purple: 'rgb(153, 102, 255)',
 	grey: 'rgb(201, 203, 207)'
 };
+
+const msOneMinute = 60 * 1000;
+const msOneHour = 60 * msOneMinute;
 
 const keen = new KeenAnalysis(keys.keen);
 
@@ -33,13 +35,7 @@ const chartConfig = {
 	options: {
 		scales: {
 			xAxes: [{
-				type: 'realtime',				// x axis will auto-scroll from right to left
-				realtime: {							// per-axis options
-					duration: durationWithMinute * 60 * 1000,	// data in the past 24h will be displayed
-					delay: 60 * 1000,			// delay of 1 minute, so upcoming values are known before plotting a line
-					pause: false,					// chart is not paused
-					ttl: undefined				// data will be automatically deleted as it disappears off the chart
-				}
+				type: 'time',				// x axis will auto-scroll from right to left
 			}],
 			yAxes: [{
 				display: true,
@@ -64,6 +60,17 @@ const chartConfig = {
 };
 
 class GeigerChart extends Component {
+	constructor(props) {
+		const now = Date.now();
+		super(props);
+
+		this.state = {
+			interval: (props.interval) ? props.interval : 'hourly',
+			start: (props.start) ? props.start : moment(now - msOneHour).format(),
+			end: (props.end) ? props.end : moment(now).format(),
+		};
+	}
+
 	componentDidMount() {
 		this.updateCanvas();
 	}
@@ -72,45 +79,63 @@ class GeigerChart extends Component {
 //		this.updateCanvas();
 //	}
 
-	resQueryToRadiationValues(resKeen) {
-		return resKeen.result.map((currentRecord) => {
-			return {
-				x: new Date(currentRecord.timestamp),
-				y: currentRecord.usv
-			};
-		});
-	};
+	async getAveragedValues(start, end, interval='hourly', timezone='Asia/Tokyo') {
+		const res = await keen.query({
+				analysis_type: 'average',
+				event_collection: 'radiations',
+				target_property: 'usv',
+				interval: interval,
+				timezone: timezone,
+				timeframe: { start, end }
+			});
+
+		return res.result.map((r) => {
+				return {
+					x: r.timeframe.start,
+					y: r.value
+				};
+			});
+	}
 
 	updateCanvas() {
 		//const ctx = document.getElementById('chartArea').getContext('2d');
 		const ctx = this.refs.canvas.getContext('2d');
 		let chart = undefined;
 
-		keen.query({
-			analysis_type: 'extraction',
-			event_collection: 'radiations',
-			timeframe: `this_${durationWithMinute + 2}_minutes`
-		})
-		.then(res => {
+		this.getAveragedValues(this.state.start, this.state.end, 'minutely')
+		.then(data => {
 			chart = new Chart(ctx, chartConfig);
-			// append the new data to the existing chart data
-			chart.data.datasets[0].data.push(...this.resQueryToRadiationValues(res));
+			for (const d of data) {
+				if (d.y === null) {
+					continue;
+				}
+				// append the new data to the existing chart data
+				chart.data.datasets[0].data.push(d);
+			}
 			chart.update();
 		})
 		.then(() => {
 			setInterval(() => {
-				keen.query({
-					analysis_type: 'extraction',
-					event_collection: 'radiations',
-					timeframe: `this_2_minutes`
-				})
-				.then(res => {
-					// append the new data to the existing chart data
-					chart.data.datasets[0].data.push(...this.resQueryToRadiationValues(res));
+				const now = Date.now();
+				const start = moment(now - msOneMinute).format();
+				const end = moment(now).format();
+
+				this.getAveragedValues(start, end, 'minutely')
+				.then(data => {
+					for (const d of data) {
+						if (d.y === null) {
+							continue;
+						}
+						// append the new data to the existing chart data
+						chart.data.datasets[0].data.splice(0, 1);
+						chart.data.datasets[0].data.push(d);
+					}
 					// update chart datasets keeping the current animation
-					chart.update({preservation: true});
+					chart.update();
+				})
+				.catch(() => {
 				});
-			}, 60 * 1000);
+			}, msOneMinute);
 		});
 	}
 
