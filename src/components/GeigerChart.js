@@ -60,6 +60,8 @@ const chartConfig = {
 };
 
 class GeigerChart extends Component {
+	chartUpdater = undefined;
+
 	constructor(props) {
 		const now = Date.now();
 		super(props);
@@ -71,15 +73,21 @@ class GeigerChart extends Component {
 		};
 	}
 
-	componentDidMount() {
-		this.updateCanvas();
+	getContextCanvas() {
+		return this.refs.canvas.getContext('2d');
 	}
 
-//	componentDidUpdate() {
-//		this.updateCanvas();
-//	}
+	componentDidMount() {
+		console.log('didMount');
+		if (!this.chartUpdater) {
+			this.drawInitialChart()
+			.then(() => {
+				this.startChartUpdater();
+			});
+		}
+	}
 
-	async getAveragedValues(start, end, interval='hourly', timezone='Asia/Tokyo') {
+	async getAveragedValues(start, end, interval, timezone='Asia/Tokyo') {
 		const res = await keen.query({
 				analysis_type: 'average',
 				event_collection: 'radiations',
@@ -97,46 +105,45 @@ class GeigerChart extends Component {
 			});
 	}
 
-	updateCanvas() {
-		//const ctx = document.getElementById('chartArea').getContext('2d');
-		const ctx = this.refs.canvas.getContext('2d');
-		let chart = undefined;
+	async drawInitialChart(interval='minutely') {
+		const data = await this.getAveragedValues(this.state.start, this.state.end, interval);
+		const chart = new Chart(this.getContextCanvas(), chartConfig);
 
-		this.getAveragedValues(this.state.start, this.state.end, 'minutely')
-		.then(data => {
-			chart = new Chart(ctx, chartConfig);
-			for (const d of data) {
-				if (d.y === null) {
-					continue;
-				}
-				// append the new data to the existing chart data
-				chart.data.datasets[0].data.push(d);
+		for (const d of data) {
+			if (d.y === null) {
+				continue;
 			}
-			chart.update();
-		})
-		.then(() => {
-			setInterval(() => {
-				const now = Date.now();
-				const start = moment(now - msOneMinute).format();
-				const end = moment(now).format();
+			// append the new data to the existing chart data
+			chart.data.datasets[0].data.push(d);
+		}
 
-				this.getAveragedValues(start, end, 'minutely')
-				.then(data => {
-					for (const d of data) {
-						if (d.y === null) {
-							continue;
-						}
-						// append the new data to the existing chart data
-						chart.data.datasets[0].data.splice(0, 1);
-						chart.data.datasets[0].data.push(d);
+		chart.update();
+	}
+
+	startChartUpdater(interval='minutely') {
+		const chart = new Chart(this.getContextCanvas(), chartConfig);
+
+		this.chartUpdater = setInterval(() => {
+			const now = Date.now();
+			const start = moment(now - msOneMinute).format();
+			const end = moment(now).format();
+
+			this.getAveragedValues(start, end, interval)
+			.then(data => {
+				for (const d of data) {
+					if (d.y === null) {
+						continue;
 					}
-					// update chart datasets keeping the current animation
-					chart.update();
-				})
-				.catch(() => {
-				});
-			}, msOneMinute);
-		});
+					// append the new data to the existing chart data
+					chart.data.datasets[0].data.splice(0, 1);
+					chart.data.datasets[0].data.push(d);
+				}
+				// update chart datasets keeping the current animation
+				chart.update();
+			})
+			.catch(() => {
+			});
+		}, msOneMinute);
 	}
 
 	render() {
