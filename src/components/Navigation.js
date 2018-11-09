@@ -5,6 +5,7 @@ import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import NoSsr from '@material-ui/core/NoSsr';
 import Tab from '@material-ui/core/Tab';
+import DateAndTimePickers from './DateTimePicker';
 
 function LinkTab(props) {
 	return (
@@ -25,26 +26,29 @@ const styles = theme => ({
 
 class NavTabs extends React.Component {
 	state = {
-		value: 0,
+		tab: 0,
 	};
 
-	handleChange = (event, value) => {
-		this.setState({ value });
+	tabSelector = (event, tab) => {
+		this.setState({ tab });
 	};
 
 	render() {
-		const { classes } = this.props;
-		const { value } = this.state;
+		const { classes, handlerStartDate, handlerEndDate } = this.props;
+		const { tab } = this.state;
 
 		return (
 			<NoSsr>
 				<div className={classes.root}>
 					<AppBar position="fixed" color="primary" className={classes.appBar}>
-						<Tabs fullWidth value={value} onChange={this.handleChange}>
-							<LinkTab label="分毎" href="minute" />
-							<LinkTab label="週平均" href="week" disabled />
-							<LinkTab label="月平均" href="month" disabled />
-							<LinkTab label="年平均" href="year" disabled />
+						<Tabs fullWidth value={tab} onChange={this.tabSelector}>
+							<LinkTab label="分単位" href="minutely" />
+							<LinkTab label="時間平均" href="hourly" disabled />
+							<LinkTab label="日平均" href="daily" disabled />
+							<LinkTab label="週平均" href="weekly" disabled />
+							<LinkTab label="月平均" href="monthly" disabled />
+							<DateAndTimePickers label="start" handler={handlerStartDate} />
+							<DateAndTimePickers label="end" handler={handlerEndDate} />
 						</Tabs>
 					</AppBar>
 				</div>

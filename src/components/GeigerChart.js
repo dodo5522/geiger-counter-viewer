@@ -16,7 +16,6 @@ const chartColors = {
 };
 
 const msOneMinute = 60 * 1000;
-const msOneHour = 60 * msOneMinute;
 
 const keen = new KeenAnalysis(keys.keen);
 
@@ -60,31 +59,35 @@ const chartConfig = {
 };
 
 class GeigerChart extends Component {
+	chart = undefined;
 	chartUpdater = undefined;
 
 	constructor(props) {
-		const now = Date.now();
 		super(props);
 
 		this.state = {
-			interval: (props.interval) ? props.interval : 'hourly',
-			start: (props.start) ? props.start : moment(now - msOneHour).format(),
-			end: (props.end) ? props.end : moment(now).format(),
+			interval: props.interval,
+			start: props.start,
+			end: props.end,
 		};
 	}
 
-	getContextCanvas() {
-		return this.refs.canvas.getContext('2d');
+	componentDidMount() {
+		this.startChart();
 	}
 
-	componentDidMount() {
-		console.log('didMount');
-		if (!this.chartUpdater) {
-			this.drawInitialChart()
-			.then(() => {
-				this.startChartUpdater();
-			});
+	componentWillReceiveProps(nextProps) {
+		if (nextProps.start) {
+			this.setState({start: nextProps.start});
 		}
+		if (nextProps.end) {
+			this.setState({end: nextProps.end});
+		}
+	}
+
+	componentDidUpdate(prevProps, prevState) {
+		this.drawInitialChart();
+		this.startChart();
 	}
 
 	async getAveragedValues(start, end, interval, timezone='Asia/Tokyo') {
@@ -107,49 +110,65 @@ class GeigerChart extends Component {
 
 	async drawInitialChart(interval='minutely') {
 		const data = await this.getAveragedValues(this.state.start, this.state.end, interval);
-		const chart = new Chart(this.getContextCanvas(), chartConfig);
+		const context = this.refs.canvas.getContext('2d');
+
+		if (!this.chart) {
+			this.chart = new Chart(context, chartConfig);
+		}
+		this.chart.data.datasets[0].data = [];
 
 		for (const d of data) {
 			if (d.y === null) {
 				continue;
 			}
 			// append the new data to the existing chart data
-			chart.data.datasets[0].data.push(d);
+			this.chart.data.datasets[0].data.push(d);
 		}
 
-		chart.update();
+		this.chart.update();
 	}
 
-	startChartUpdater(interval='minutely') {
-		const chart = new Chart(this.getContextCanvas(), chartConfig);
+	startChart = (interval='minutely') => {
+		const startPeriodicChartUpdater = () => {
+			if (this.chartUpdater) {
+				clearInterval(this.chartUpdater);
+			}
 
-		this.chartUpdater = setInterval(() => {
-			const now = Date.now();
-			const start = moment(now - msOneMinute).format();
-			const end = moment(now).format();
+			this.chartUpdater = setInterval(() => {
+				const now = Date.now();
+				const start = moment(now - msOneMinute).format();
+				const end = moment(now).format();
 
-			this.getAveragedValues(start, end, interval)
-			.then(data => {
-				for (const d of data) {
-					if (d.y === null) {
-						continue;
+				this.getAveragedValues(start, end, interval)
+				.then(data => {
+					for (const d of data) {
+						if (d.y === null) {
+							continue;
+						}
+						// append the new data to the existing chart data
+						this.chart.data.datasets[0].data.splice(0, 1);
+						this.chart.data.datasets[0].data.push(d);
 					}
-					// append the new data to the existing chart data
-					chart.data.datasets[0].data.splice(0, 1);
-					chart.data.datasets[0].data.push(d);
-				}
-				// update chart datasets keeping the current animation
-				chart.update();
-			})
-			.catch(() => {
+					// update chart datasets keeping the current animation
+					this.chart.update();
+				});
+			}, msOneMinute);
+		};
+
+		if (!this.chart) {
+			this.drawInitialChart()
+			.then(() => {
+				startPeriodicChartUpdater();
 			});
-		}, msOneMinute);
+		} else {
+			startPeriodicChartUpdater();
+		}
 	}
 
 	render() {
 		return (
 			<div>
-				<canvas ref="canvas" width='100%' height='100%'/>
+				<canvas ref="canvas" width='500px' height='250px'/>
 			</div>
 		);
 	}
