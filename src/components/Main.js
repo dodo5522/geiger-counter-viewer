@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import GeigerChart from './GeigerChart';
-import Navigation from './Navigation';
+import AppBar from './AppBar';
+import Tabs from './Tabs';
 import moment from 'moment';
 
 const now = Date.now();
@@ -24,7 +25,8 @@ class Main extends Component {
 	render () {
 		return (
 			<div>
-				<Navigation handlerStartDate={this.handlerStartDate} handlerEndDate={this.handlerEndDate} />
+				<AppBar />
+				<Tabs handlerStartDate={this.handlerStartDate} handlerEndDate={this.handlerEndDate} />
 				<GeigerChart start={this.state.start} end={this.state.end} />
 			</div>
 		);
