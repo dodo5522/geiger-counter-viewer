@@ -29,7 +29,7 @@ function DateAndTimePickers(props) {
 				InputLabelProps={{
 					shrink: true,
 				}}
-				onChange={handler}
+				onBlur={handler}
 			/>
 		</form>
 	);
