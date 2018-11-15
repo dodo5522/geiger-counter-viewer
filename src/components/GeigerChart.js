@@ -26,8 +26,10 @@ const chartConfig = {
 			label: '昭島市東町2丁目',
 			backgroundColor: color(chartColors.blue).alpha(0.5).rgbString(),
 			borderColor: chartColors.blue,
-			fill: false,
-			cubicInterpolationMode: 'monotone',
+			fill: 'origin',
+			cubicInterpolationMode: 'default',
+			lineTension: 0,
+			borderJoinStyle: 'round',
 			data: []
 		}]
 	},
