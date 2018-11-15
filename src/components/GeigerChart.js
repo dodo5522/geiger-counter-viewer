@@ -73,7 +73,7 @@ class GeigerChart extends Component {
 	}
 
 	componentDidMount() {
-		this.startChart();
+		this.startChart(this.state.interval);
 	}
 
 	componentWillReceiveProps(nextProps) {
@@ -83,11 +83,14 @@ class GeigerChart extends Component {
 		if (nextProps.end) {
 			this.setState({end: nextProps.end});
 		}
+		if (nextProps.interval) {
+			this.setState({interval: nextProps.interval});
+		}
 	}
 
 	componentDidUpdate(prevProps, prevState) {
-		this.drawInitialChart();
-		this.startChart();
+		this.stopChart();
+		this.drawInitialChart(this.state.interval);
 	}
 
 	async getAveragedValues(start, end, interval, timezone='Asia/Tokyo') {
@@ -164,6 +167,13 @@ class GeigerChart extends Component {
 			startPeriodicChartUpdater();
 		}
 	}
+
+	stopChart = () => {
+		if (this.chartUpdater) {
+			clearInterval(this.chartUpdater);
+			this.chartUpdater = undefined;
+		}
+	};
 
 	render() {
 		return (

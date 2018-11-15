@@ -16,7 +16,7 @@ const styles = theme => ({
 });
 
 function DateAndTimePickers(props) {
-	const { classes, handler, label } = props;
+	const { classes, handler, label, defaultValue } = props;
 
 	return (
 		<form className={classes.container} noValidate>
@@ -24,7 +24,7 @@ function DateAndTimePickers(props) {
 				id="datetime-local"
 				label={label}
 				type="datetime-local"
-				defaultValue={(new Date()).toISOString().split(":").splice(0, 2).join(":")}
+				defaultValue={defaultValue}
 				className={classes.textField}
 				InputLabelProps={{
 					shrink: true,

@@ -4,13 +4,11 @@ import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import IconButton from '@material-ui/core/IconButton';
 import Typography from '@material-ui/core/Typography';
-import Badge from '@material-ui/core/Badge';
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
 import { withStyles } from '@material-ui/core/styles';
 import MenuIcon from '@material-ui/icons/Menu';
-import MailIcon from '@material-ui/icons/Mail';
-import NotificationsIcon from '@material-ui/icons/Notifications';
+import DateAndTimePickers from './DateTimePicker';
 
 const styles = theme => ({
 	root: {
@@ -73,7 +71,7 @@ class GeigerChartAppBar extends React.Component {
 
 	render() {
 		const { anchorEl } = this.state;
-		const { classes } = this.props;
+		const { classes, startDateTime, endDateTime, handleStartDate, handleEndDate } = this.props;
 		const isMainMenuOpen = Boolean(anchorEl);
 
 		const renderMainMenu = (
@@ -85,20 +83,20 @@ class GeigerChartAppBar extends React.Component {
 				onClose={this.handleMainMenuClose}
 			>
 				<MenuItem>
-					<IconButton color="inherit">
-						<Badge badgeContent={4} color="secondary">
-							<MailIcon />
-						</Badge>
-					</IconButton>
-					<p>Messages</p>
+					<DateAndTimePickers
+						defaultValue={startDateTime}
+						color="inherit"
+						label="begin"
+						handler={handleStartDate}
+					/>
 				</MenuItem>
 				<MenuItem>
-					<IconButton color="inherit">
-						<Badge badgeContent={11} color="secondary">
-							<NotificationsIcon />
-						</Badge>
-					</IconButton>
-					<p>Notifications</p>
+					<DateAndTimePickers
+						defaultValue={endDateTime}
+						color="inherit"
+						label="end"
+						handler={handleEndDate}
+					/>
 				</MenuItem>
 			</Menu>
 		);
@@ -120,16 +118,18 @@ class GeigerChartAppBar extends React.Component {
 						</Typography>
 						<div className={classes.grow} />
 						<div className={classes.sectionDesktop}>
-							<IconButton color="inherit">
-								<Badge badgeContent={4} color="secondary">
-									<MailIcon />
-								</Badge>
-							</IconButton>
-							<IconButton color="inherit">
-								<Badge badgeContent={17} color="secondary">
-									<NotificationsIcon />
-								</Badge>
-							</IconButton>
+							<DateAndTimePickers
+								defaultValue={startDateTime}
+								color="inherit"
+								label="begin"
+								handler={handleStartDate}
+							/>
+							<DateAndTimePickers
+								defaultValue={endDateTime}
+								color="inherit"
+								label="end"
+								handler={handleEndDate}
+							/>
 						</div>
 					</Toolbar>
 				</AppBar>
