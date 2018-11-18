@@ -1,10 +1,13 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import { withStyles } from '@material-ui/core/styles';
 import { KeenAnalysis } from 'keen-analysis';
 import { Chart } from 'chart.js';
 import { keys } from '../config';
 import moment from 'moment';
 
 const color = Chart.helpers.color;
+
 const chartColors = {
 	red: 'rgb(255, 99, 132)',
 	orange: 'rgb(255, 159, 64)',
@@ -14,6 +17,15 @@ const chartColors = {
 	purple: 'rgb(153, 102, 255)',
 	grey: 'rgb(201, 203, 207)'
 };
+
+const styles = themes => ({
+	areaChart: {
+		position: 'relative',
+		margin: 'auto',
+		height: '60vh',
+		width: '100vw',
+	},
+});
 
 const msOneMinute = 60 * 1000;
 
@@ -34,6 +46,8 @@ const chartConfig = {
 		}]
 	},
 	options: {
+		responsiveAnimationDuration: 2,
+		maintainAspectRatio: false,
 		scales: {
 			xAxes: [{
 				type: 'time',				// x axis will auto-scroll from right to left
@@ -178,12 +192,18 @@ class GeigerChart extends Component {
 	};
 
 	render() {
+		const { classes } = this.props;
 		return (
-			<div>
-				<canvas ref="canvas" width='500px' height='250px'/>
+			<div className={classes.areaChart}>
+				<canvas ref="canvas" />
 			</div>
 		);
 	}
 }
 
-export default GeigerChart;
+
+GeigerChart.propTypes = {
+	classes: PropTypes.object.isRequired,
+};
+
+export default withStyles(styles)(GeigerChart);
